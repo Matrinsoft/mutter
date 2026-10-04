@@ -96,7 +96,20 @@ jobs:
                 rm -f "$SOURCE0_PATH"
                 case "$SOURCE0_NAME" in
                   *.tar.xz)
-                    git -C /src archive --format=tar --prefix="$SOURCE0_ROOT/" "$ARCHIVE_TREE" | xz -c > "$SOURCE0_PATH"
+                    ARCHIVE_TAR=$(mktemp)
+                    git -C /src archive --format=tar --prefix="$SOURCE0_ROOT/" "$ARCHIVE_TREE" > "$ARCHIVE_TAR"
+                    if [ -f "/src/$SOURCE0_ROOT/subprojects/gvdb.wrap" ]; then
+                      GVDB_TMP=$(mktemp -d)
+                      mkdir -p "$GVDB_TMP/$SOURCE0_ROOT/subprojects"
+                      git -C "$GVDB_TMP/$SOURCE0_ROOT/subprojects" clone -q https://gitlab.gnome.org/GNOME/gvdb.git gvdb
+                      git -C "$GVDB_TMP/$SOURCE0_ROOT/subprojects/gvdb" fetch -q --depth 1 origin b54bc5da25127ef416858a3ad92e57159ff565b3
+                      git -C "$GVDB_TMP/$SOURCE0_ROOT/subprojects/gvdb" checkout -q FETCH_HEAD
+                      rm -rf "$GVDB_TMP/$SOURCE0_ROOT/subprojects/gvdb/.git"
+                      tar -rf "$ARCHIVE_TAR" -C "$GVDB_TMP" "$SOURCE0_ROOT/subprojects/gvdb"
+                      rm -rf "$GVDB_TMP"
+                    fi
+                    xz -c < "$ARCHIVE_TAR" > "$SOURCE0_PATH"
+                    rm -f "$ARCHIVE_TAR"
                     ;;
                   *.tar.gz)
                     git -C /src archive --format=tar --prefix="$SOURCE0_ROOT/" "$ARCHIVE_TREE" | gzip -c > "$SOURCE0_PATH"
