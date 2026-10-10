@@ -106,7 +106,7 @@ jobs:
                 case "$SOURCE0_NAME" in
                   *.tar.xz)
                     ARCHIVE_TAR=$(mktemp)
-                    git -C /src archive --format=tar --prefix="$SOURCE0_ROOT/" "$ARCHIVE_TREE" > "$ARCHIVE_TAR"
+                    tar -cf "$ARCHIVE_TAR" --exclude="$SOURCE0_ROOT/.git" -C /src "$SOURCE0_ROOT"
                     if [ -f "/src/$SOURCE0_ROOT/subprojects/gvdb.wrap" ]; then
                       GVDB_TMP=$(mktemp -d)
                       mkdir -p "$GVDB_TMP/$SOURCE0_ROOT/subprojects"
